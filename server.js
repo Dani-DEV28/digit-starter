@@ -24,8 +24,8 @@ const sessionPromise = ort.InferenceSession.create(
 sessionPromise && sessionPromise
   .then(() => {
     console.log('Model loaded.')
-    console.log('Server-side:  http://localhost:3000/')
-    console.log('Browser-side: http://localhost:3000/browser')
+    console.log('Server-side:  http://localhost:8080/')
+    console.log('Browser-side: http://localhost:8080/browser')
   })
   .catch(err => {
     console.error('Could not load model:', err.message)
@@ -108,5 +108,5 @@ app.post('/predict', async (req, res) => {
 
 
 app.listen(8080, () => {
-  console.log('Server listening on http://localhost:3000')
+  console.log('Server listening on http://localhost:8080')
 })
