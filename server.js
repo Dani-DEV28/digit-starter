@@ -17,18 +17,15 @@ app.use(express.static(__dirname))
 
 
 // ── Load model ────────────────────────────────────────────────────────────────
-// TODO: load your model here
-// Replace this line with the InferenceSession.create() call using your .onnx file.
-// Store the result as `sessionPromise` so the /predict route can await it.
-
-const sessionPromise = null // replace this
-
+const sessionPromise = ort.InferenceSession.create(
+  path.join(__dirname, 'digit_model.onnx')
+)
 
 sessionPromise && sessionPromise
   .then(() => {
     console.log('Model loaded.')
-    console.log('Server-side:  http://localhost:8080/')
-    console.log('Browser-side: http://localhost:8080/browser')
+    console.log('Server-side:  http://localhost:3000/')
+    console.log('Browser-side: http://localhost:3000/browser')
   })
   .catch(err => {
     console.error('Could not load model:', err.message)
@@ -99,19 +96,17 @@ app.post('/predict', async (req, res) => {
   // Wrap in an ONNX tensor: shape [batch, height, width, channels]
   const tensor = new ort.Tensor('float32', normalized, [1, 28, 28, 1])
 
-  // TODO: run inference here
-  // 1. Await sessionPromise to get the loaded session
-  // 2. Call session.run() with the tensor, using session.inputNames[0] as the key
-  // 3. Extract the probability array from results[session.outputNames[0]].data
-  // 4. Find the digit with the highest probability
-
-  const probs = null  // replace this
-  const digit = null  // replace this
+  // ── Run inference ──────────────────────────────────────────────────────────
+  const session = await sessionPromise
+  const feeds   = { [session.inputNames[0]]: tensor }
+  const results = await session.run(feeds)
+  const probs   = Array.from(results[session.outputNames[0]].data)
+  const digit   = probs.indexOf(Math.max(...probs))
 
   res.json({ digit, confidence: probs[digit], probs: Array.from(probs) })
 })
 
 
 app.listen(8080, () => {
-  console.log('Server listening on http://localhost:8080')
+  console.log('Server listening on http://localhost:3000')
 })
