@@ -32,7 +32,7 @@
 
   <div id="status"></div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.20.0/dist/tf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js"></script>
   <script src="drawing.js"></script>
 
 <script>
@@ -66,10 +66,7 @@
     }
   }
 
-  // ── Preprocessing ────────────────────────────────────────────────────────────
-  // Mirrors bbox_normalize() from the training pipeline.
-  // TF.js built-in ops handle the crop and resize.
-
+  // ── Preprocessing ─────────────────────────────────────────────────────────
   async function bboxNormalize(tensor28) {
     const data = await tensor28.data()
     const PAD  = 2
@@ -96,10 +93,10 @@
     return resized
   }
 
-  // ── Load model ───────────────────────────────────────────────────────────────
+  // ── Load model ─────────────────────────────────────────────────────────────
   let model = null
 
-  tf.loadLayersModel('model/model.json')
+  tf.loadGraphModel('model/model.json')
     .then(m => {
       model = m
       document.getElementById('predict-btn').disabled    = false
@@ -113,21 +110,19 @@
       document.getElementById('status').textContent = 'Copy your model/ folder into this directory'
     })
 
-  // ── Predict ──────────────────────────────────────────────────────────────────
+  // ── Predict ────────────────────────────────────────────────────────────────
   document.getElementById('predict-btn').onclick = async () => {
     const pixels = getPixels('canvas')
 
     let t = tf.tensor(pixels, [28, 28, 1])
     t     = await bboxNormalize(t)
 
-    // TODO: run inference here
-    // 1. Call model.predict() with t.expandDims(0) as input
-    // 2. Extract the probability array from the output tensor using .dataSync()
-    // 3. Find the index of the highest probability (that's the predicted digit)
-    // 4. Dispose the input and output tensors
+    const outputTensor = model.predict(t.expandDims(0))
+    const probs        = Array.from(outputTensor.dataSync())
+    const digit        = probs.indexOf(Math.max(...probs))
 
-    const probs = null  // replace this
-    const digit = null  // replace this
+    outputTensor.dispose()
+    t.dispose()
 
     document.getElementById('digit').textContent = digit
     document.getElementById('conf').textContent  = `${(probs[digit] * 100).toFixed(1)}% confident`
