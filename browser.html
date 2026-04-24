@@ -120,14 +120,14 @@
     let t = tf.tensor(pixels, [28, 28, 1])
     t     = await bboxNormalize(t)
 
-    // TODO: run inference here
-    // 1. Call model.predict() with t.expandDims(0) as input
-    // 2. Extract the probability array from the output tensor using .dataSync()
-    // 3. Find the index of the highest probability (that's the predicted digit)
-    // 4. Dispose the input and output tensors
+    const input = t.expandDims(0)
+    const output = model.predict(input)
+    const probs = Array.from(output.dataSync())
+    const digit = probs.indexOf(Math.max(...probs))
 
-    const probs = null  // replace this
-    const digit = null  // replace this
+    t.dispose()
+    input.dispose()
+    output.dispose()
 
     document.getElementById('digit').textContent = digit
     document.getElementById('conf').textContent  = `${(probs[digit] * 100).toFixed(1)}% confident`

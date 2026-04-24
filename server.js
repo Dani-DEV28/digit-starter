@@ -21,7 +21,7 @@ app.use(express.static(__dirname))
 // Replace this line with the InferenceSession.create() call using your .onnx file.
 // Store the result as `sessionPromise` so the /predict route can await it.
 
-const sessionPromise = null // replace this
+const sessionPromise = ort.InferenceSession.create(path.join(__dirname, 'digit_model.onnx'))
 
 
 sessionPromise && sessionPromise
@@ -105,8 +105,10 @@ app.post('/predict', async (req, res) => {
   // 3. Extract the probability array from results[session.outputNames[0]].data
   // 4. Find the digit with the highest probability
 
-  const probs = null  // replace this
-  const digit = null  // replace this
+  const session = await sessionPromise
+  const results = await session.run({ [session.inputNames[0]]: tensor })
+  const probs = Array.from(results[session.outputNames[0]].data)
+  const digit = probs.indexOf(Math.max(...probs))
 
   res.json({ digit, confidence: probs[digit], probs: Array.from(probs) })
 })
